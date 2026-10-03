@@ -1,0 +1,9 @@
+{
+  "name": "verse-lyrics-beta",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A translucent floating lyrics UI prototype",
+  "main": "main.cjs",
+  "scripts": { "start": "electron ." },
+  "devDependencies": { "electron": "^42.0.0" }
+}
