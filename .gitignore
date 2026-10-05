@@ -4,3 +4,16 @@ node_modules/
 !.env.example
 .DS_Store
 dist/
+out/
+coverage/
+test-results/
+*.log
+*.enc
+*.pem
+.npm-cache/
+.electron-cache/
+.credentials/
+credentials*.json
+tokens*.json
+*.key
+*.p12
