@@ -26,10 +26,10 @@ The development machine used for this implementation did not have `node` or `npm
 ## The overlay
 
 - 280 px wide; height follows wrapped lyrics and the tint control. Unusually long lines scroll within a bounded lyric area so playback controls remain reachable.
-- Original white lyrics, small album thumbnail, current and next line, tiny play/pause button, and thin seek bar. Only the glass surface changes opacity.
+- Original white lyrics, small album thumbnail, current and next line, playback controls to the right of the song information. Idle shows play/pause; hovering anywhere on the overlay or using keyboard focus reveals previous/next and the thin seek bar. Reserved space keeps text and window dimensions stable. The play glyph moves within a fixed hit target. Touch devices keep controls visible; reduced motion disables animation.
 - Album artwork supplies a dominant color, darkened for white-text readability; colors transition smoothly. Unavailable/black/white artwork gets a neutral violet fallback.
-- Drag the header. Its buttons stay clickable. The three-dot button opens **only Glass tint**; Escape closes it.
-- Minimize to a **190 × 44 px pill**; click the pill to restore. Position, tint, and collapsed state survive restarts. A disconnected display moves the window back into a visible work area.
+- Drag the header. Its buttons stay clickable. The three-dot button opens **only Glass tint** (0–100%); Escape closes it. Tint changes the glass color, shine and blur, with fully opaque white text. At 0–5%, native vibrancy is disabled for a nearly clear surface; higher values restore native blur.
+- Minimize to a **190 × 44 px pill**; click the arrow-free pill to restore. Position, tint, and collapsed state survive restarts. A disconnected display moves the window back into a visible work area.
 - Menu-bar equalizer icon: Show/Hide, Connect/Reconnect/Disconnect Spotify, Demo mode, Reset window position, and Quit.
 - **Cmd/Ctrl+Shift+L** shows/hides; **Cmd/Ctrl+Q** quits. Closing the overlay hides it; the menu-bar app remains running.
 - Demo mode is explicitly labeled in both the expanded window and pill. “Afterglow,” “Tangerine Sky,” and “Low Tide” cycle through the prototype's original sample lyrics. There is no demo audio.
@@ -65,7 +65,7 @@ Authorization Code with PKCE uses a random verifier and validated OAuth state, o
 - Development Mode requires a Premium **app owner** and normally permits **five authorized users**. Existing higher user counts may be grandfathered. Public distribution / extended quota access is a separate Spotify approval process. [Quota modes](https://developer.spotify.com/documentation/web-api/concepts/quota-modes), [February migration guide](https://developer.spotify.com/documentation/web-api/tutorials/february-2026-migration-guide).
 - The **July 23, 2026** update increased the developer Client ID limit to **25**, replacing February's one-app limit. Development apps share a per-developer quota. A 429 response can contain `QUOTA_EXCEEDED`; Verse recognizes it and backs off. [July update](https://developer.spotify.com/blog/2026-07-23-web-api-quota-updates).
 - Dashboard access and permitted endpoints can vary by app. Existing-app endpoint changes announced for March were postponed; don't assume an old tutorial describes your current access. [Spotify's updated announcement](https://developer.spotify.com/blog/2026-02-06-update-on-developer-access-and-platform-security).
-- This app requests only `user-read-playback-state` and `user-modify-playback-state`. It reads `GET /v1/me/player`, and uses `PUT /v1/me/player/play`, `/pause`, and `/seek`. Remote controls require Premium and a controllable active device; API access, device restrictions, and Spotify's `actions.disallows` may disable them. No Web Playback SDK, private endpoints, cookies, account profile, or client secret are needed. [Playback state](https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback), [play](https://developer.spotify.com/documentation/web-api/reference/start-a-users-playback), [pause](https://developer.spotify.com/documentation/web-api/reference/pause-a-users-playback), [seek](https://developer.spotify.com/documentation/web-api/reference/seek-to-position-in-currently-playing-track).
+- This app requests only `user-read-playback-state` and `user-modify-playback-state`. It reads `GET /v1/me/player`, and uses `PUT /v1/me/player/play`, `/pause`, and `/seek`, plus `POST /v1/me/player/previous` and `/next`. Remote controls require Premium and a controllable active device; API access, device restrictions, and Spotify's `actions.disallows` may disable them. No Web Playback SDK, private endpoints, cookies, account profile, or client secret are needed. [Playback state](https://developer.spotify.com/documentation/web-api/reference/get-information-about-the-users-current-playback), [play](https://developer.spotify.com/documentation/web-api/reference/start-a-users-playback), [pause](https://developer.spotify.com/documentation/web-api/reference/pause-a-users-playback), [seek](https://developer.spotify.com/documentation/web-api/reference/seek-to-position-in-currently-playing-track).
 
 A successful login does not guarantee access to every player endpoint. A 403 displays an access explanation; Verse never tries to bypass the account's restrictions.
 
@@ -121,7 +121,7 @@ The macOS build appears at `dist/Verse-darwin-arm64/Verse.app` on Apple Silicon 
 
 macOS **26.6.2**, Apple Silicon; Node **24.19.0**, Electron **42.11.10**:
 
-- Clean `npm ci`, syntax checks, 30 automated tests, and `npm audit` with **zero reported vulnerabilities**.
+- Clean `npm ci`, syntax checks, 33 automated tests, and `npm audit` with **zero reported vulnerabilities**.
 - Real Electron rendering: demo play/pause, tint-only settings, 190 × 44 pill, saved tint/collapse, wrapped lyrics, scrolling plain lyrics, instrumental/missing lyrics, disabled controls during network errors, disconnected state, show/hide, onboarding, IPC rejection, and sandbox settings.
 - Live LRCLIB exact-match lookup returned synchronized lyrics for its public example. This verifies LRCLIB access, not Spotify access.
 - Local macOS `.app` packaging and standalone launch succeeded. The packaged demo was also inspected on the native desktop.
@@ -146,3 +146,5 @@ Not yet verified: live Spotify login/refresh/playback/seek, accuracy against act
 | Reset everything | Quit Verse, then remove its application support folder yourself. This also removes the encrypted login. |
 
 Code remains in `lyric-beta`: `main.cjs` manages windows/tray/IPC; `preload.cjs` is the narrow bridge; `src/auth.cjs`, `spotify.cjs`, `playback.cjs`, `lyrics.cjs`, `artwork.cjs`, and `storage.cjs` isolate services; `core.js` contains shared timing/LRC/color/geometry functions; `renderer.js` and the original `demo.js` drive the plain HTML interface.
+
+UI reference update verified October 5, 2026: idle/hover/keyboard geometry, clicks during icon motion, touch emulation, reduced motion, saved 0% and 100% tint, and the arrow-free pill were checked in real Electron. Spotify skip actions are covered by API fixtures; no live account playback was changed during these UI checks.

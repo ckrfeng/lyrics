@@ -102,12 +102,14 @@ function registerIpc() {
     if (!patch || Object.keys(patch).some(k => !['tint', 'collapsed'].includes(k))) return { ok: false };
     const clean = {};
     if (typeof patch.collapsed === 'boolean') clean.collapsed = patch.collapsed;
-    if (Number.isFinite(patch.tint) && patch.tint >= 25 && patch.tint <= 90) clean.tint = Math.round(patch.tint);
-    prefs.set(clean); return { ok: true };
+    if (Number.isFinite(patch.tint) && patch.tint >= 0 && patch.tint <= 100) clean.tint = Math.round(patch.tint);
+    prefs.set(clean);
+    if (nativeGlass && clean.tint !== undefined) win.setVibrancy(clean.tint <= 5 ? null : 'hud', { animationDuration: 160 });
+    return { ok: true };
   });
   ipcMain.handle('verse:control', (event, command) => {
     guard(event);
-    if (!command || typeof command.trackId !== 'string' || !['play', 'pause', 'seek'].includes(command.action) || mode !== 'spotify') return { ok: false, message: 'Invalid playback command.' };
+    if (!command || typeof command.trackId !== 'string' || !['play', 'pause', 'seek', 'previous', 'next'].includes(command.action) || mode !== 'spotify') return { ok: false, message: 'Invalid playback command.' };
     return result(() => service.control(command));
   });
   ipcMain.handle('verse:open-track', event => {
@@ -157,7 +159,7 @@ else {
     const bounds = safeBounds({ x: prefs.value.x, y: prefs.value.y, width: prefs.value.collapsed ? 190 : 280, height: prefs.value.collapsed ? 44 : 190 }, workAreas());
     win = new BrowserWindow({ ...bounds, frame: false, transparent: true, alwaysOnTop: true, resizable: false,
       maximizable: false, fullscreenable: false, hasShadow: false, roundedCorners: true, show: false,
-      backgroundColor: '#00000000', ...(nativeGlass ? { vibrancy: 'hud', visualEffectState: 'active' } : {}),
+      backgroundColor: '#00000000', ...(nativeGlass ? { vibrancy: prefs.value.tint <= 5 ? undefined : 'hud', visualEffectState: 'active' } : {}),
       webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, webSecurity: true, backgroundThrottling: true } });
     secureWindow(win); win.setAlwaysOnTop(true, 'floating');
     if (process.platform === 'darwin') win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });

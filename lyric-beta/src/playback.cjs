@@ -57,9 +57,9 @@ class PlaybackService extends EventEmitter {
       } else {
         const changed = track.id !== this.state.track?.id;
         if (changed) this.controlBlockedUntil = 0;
-        if (Date.now() < (this.controlBlockedUntil || 0)) { track.controls = { play: false, pause: false, seek: false }; track.controlReason = this.controlError; }
+        if (Date.now() < (this.controlBlockedUntil || 0)) { track.controls = { play: false, pause: false, seek: false, previous: false, next: false }; track.controlReason = this.controlError; }
         if (!(this.api.auth.tokens?.scope || '').split(' ').includes('user-modify-playback-state')) {
-          track.controls = { play: false, pause: false, seek: false }; track.controlReason = 'Reconnect Spotify to allow playback controls.';
+          track.controls = { play: false, pause: false, seek: false, previous: false, next: false }; track.controlReason = 'Reconnect Spotify to allow playback controls.';
         }
         this.patch({ status: 'ready', message: '', track, ...(changed ? { lyrics: { kind: 'loading', lines: [] }, artwork: null } : {}) });
         if (changed || (this.state.lyrics?.kind === 'error' && Date.now() >= this.lyricsRetryAt)) {
@@ -88,22 +88,25 @@ class PlaybackService extends EventEmitter {
   async control({ action, position, trackId }) {
     const track = this.state.track;
     if (this.commanding || !this.active || this.suspended || this.state.status !== 'ready' || !track || track.id !== trackId) throw new ApiError('Playback changed. Try again.', 'unavailable');
-    if (!['play', 'pause', 'seek'].includes(action) || !track.controls[action]) throw new ApiError(track.controlReason || 'Spotify does not allow this control right now.', 'access');
+    if (!['play', 'pause', 'seek', 'previous', 'next'].includes(action) || !track.controls[action]) throw new ApiError(track.controlReason || 'Spotify does not allow this control right now.', 'access');
     if (action === 'seek' && (!Number.isFinite(position) || position < 0 || position >= track.duration)) throw new ApiError('Invalid playback position.', 'unavailable');
     this.commanding = true; this.revision++; this.requestController?.abort(); clearTimeout(this.timer);
     const controller = new AbortController(); this.commandController = controller;
     const revision = this.revision;
     try {
       const route = action === 'seek' ? `/me/player/seek?position_ms=${Math.round(position)}` : `/me/player/${action}`;
-      await this.api.request(route, 'PUT', controller.signal);
+      const skipping = action === 'previous' || action === 'next';
+      await this.api.request(route, skipping ? 'POST' : 'PUT', controller.signal);
       if (revision !== this.revision || !this.active) return;
+      // Skip responses contain no new track/position: wait for authoritative polling.
+      if (skipping) return;
       const elapsed = track.playing ? Math.max(0, Date.now() - track.sampledAt) : 0;
       this.patch({ track: { ...track, position: action === 'seek' ? position : Math.min(track.duration, track.position + elapsed), playing: action === 'seek' ? track.playing : action === 'play', sampledAt: Date.now() }, message: '' });
     } catch (error) {
       if (revision !== this.revision || !this.active) return;
       if (error.code === 'access') {
         this.controlBlockedUntil = Date.now() + 60000; this.controlError = 'Controls need Premium and an API-enabled Spotify device. Retry in a minute.';
-        this.patch({ track: { ...track, controls: { play: false, pause: false, seek: false }, controlReason: this.controlError } });
+        this.patch({ track: { ...track, controls: { play: false, pause: false, seek: false, previous: false, next: false }, controlReason: this.controlError } });
       }
       this.patch({ message: error.message }); throw error;
     } finally { this.commanding = false; if (this.active) this.schedule(Math.max(600, this.api.retryAt - Date.now())); }

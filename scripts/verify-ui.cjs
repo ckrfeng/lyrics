@@ -28,6 +28,7 @@ async function fit(page) {
   assert.match(await page.locator('#artist').textContent(), /demo/);
   await page.locator('#play').click();
   assert.equal(await page.locator('#play').getAttribute('aria-label'), 'Play demo');
+  await require('./verify-controls.cjs')(app, page, output);
   await page.screenshot({ path: path.join(output, 'demo.png'), omitBackground: true });
   await page.locator('#settings-button').click(); await fit(page);
   assert.equal(await page.locator('#settings input').count(), 1);
@@ -52,7 +53,7 @@ async function fit(page) {
   // Real renderer + native window, with explicitly fictional API fixtures.
   const fixture = { mode: 'spotify', status: 'ready', message: '', artwork: null,
     track: { id: 'fixture', title: 'Fictional test track', artist: 'Test fixture', duration: 90000, position: 1000,
-      playing: false, sampledAt: Date.now(), controls: { play: true, pause: true, seek: true }, controlReason: '' } };
+      playing: false, sampledAt: Date.now(), controls: { play: true, pause: true, seek: true, previous: true, next: true }, controlReason: '' } };
   async function sendFixture(patch) {
     await app.evaluate(({ BrowserWindow }, state) => BrowserWindow.getAllWindows()[0].webContents.send('verse:state', state), { ...fixture, ...patch });
     await fit(page);

@@ -10,14 +10,26 @@
 <body>
 <section id="overlay" aria-label="Floating lyrics">
 <div id="expanded">
-<header><div class="art" id="art" aria-hidden="true"><span id="art-placeholder">♪</span><img id="art-image" alt="" hidden></div><div class="song-info"><div class="song-title" id="title">Afterglow</div><div class="artist" id="artist">Verse Sessions · demo</div></div><button class="icon" id="settings-button" aria-label="Glass tint" aria-expanded="false" aria-controls="settings">···</button><button class="icon" id="collapse" aria-label="Minimize lyrics">−</button></header>
+<header>
+<div class="art" id="art" aria-hidden="true"><span id="art-placeholder">♪</span><img id="art-image" alt="" hidden></div>
+<div class="song-info"><div class="song-title" id="title"></div><div class="artist" id="artist"></div></div>
+<div class="playback" role="group" aria-label="Playback controls">
+<div class="transport">
+<button class="icon" id="previous-song" aria-label="Previous song" title="Previous song"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h2v10H2zM13 3v10L5 8z"/></svg></button>
+<button class="icon" id="play" aria-label="Play"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="play-symbol" d="M4 2l10 6-10 6z"/></svg></button>
+<button class="icon" id="next-song" aria-label="Next song" title="Next song"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12 3h2v10h-2zM3 3l8 5-8 5z"/></svg></button>
+</div>
+<input class="seek" id="seek" type="range" min="0" max="90000" step="100" value="0" aria-label="Playback position">
+</div>
+<div class="window-actions"><button class="icon" id="settings-button" aria-label="Glass tint" aria-expanded="false" aria-controls="settings" title="Glass tint">···</button><button class="icon" id="collapse" aria-label="Minimize lyrics" title="Minimize">−</button></div>
+</header>
 <div class="lyrics" id="lyrics" aria-label="Lyrics"><p class="lyric current" id="current"></p><p class="lyric faded" id="following"></p><div id="plain" tabindex="0" aria-label="Unsynchronized lyrics; scroll to read" hidden></div></div>
 <p class="status" id="status" role="status" hidden></p>
-<div class="playback"><button class="icon" id="play" aria-label="Pause demo">Ⅱ</button><input class="seek" id="seek" type="range" min="0" max="90000" step="100" value="0" aria-label="Demo playback position"></div>
+
 <div class="source" id="source" hidden><button id="spotify-link" title="Open this track in Spotify" aria-label="Open this track in Spotify"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="12" fill="currentColor"/><path d="M5.3 8.4c4.5-1.3 9.4-.9 13.4 1.4M6.1 12c3.7-1.1 7.6-.7 11 1.2M7 15.4c3-.8 6-.5 8.9 1" fill="none" stroke="#272832" stroke-width="1.65" stroke-linecap="round"/></svg><span>Spotify</span></button><span>Lyrics · LRCLIB</span></div>
-<div class="settings" id="settings" hidden><label for="opacity">Glass tint <span id="opacity-value">42%</span></label><input id="opacity" type="range" min="25" max="90" value="42"></div>
+<div class="settings" id="settings" hidden><label for="opacity">Glass tint <span id="opacity-value">42%</span></label><input id="opacity" type="range" min="0" max="100" value="42"></div>
 </div>
-<button id="pill" aria-label="Expand lyrics"><span class="equalizer" aria-hidden="true"><span></span><span></span><span></span></span><span id="pill-title">Afterglow</span><span id="pill-demo">demo</span><span aria-hidden="true">↗</span></button>
+<button id="pill" aria-label="Expand lyrics"><span class="equalizer" aria-hidden="true"><span></span><span></span><span></span></span><span id="pill-title">Afterglow</span><span id="pill-demo">demo</span></button>
 </section>
 <div class="preview-note" id="preview-note" hidden>Verse · fictional demo · no audio</div>
 </body></html>

@@ -53,7 +53,7 @@ class SpotifyApi {
 function normalizePlayback(data) {
   const item = data?.item;
   if (!item || item.type !== 'track' || data.currently_playing_type === 'ad' || item.is_local) return null;
-  const disallows = data.actions?.disallows || {};
+  const disallows = data.actions?.disallows || data.actions || {};
   const restricted = !data.device || data.device.is_restricted;
   const art = item.album?.images?.find(i => i.width >= 64 && i.width <= 640) || item.album?.images?.[0];
   return {
@@ -64,6 +64,7 @@ function normalizePlayback(data) {
     duration: Math.max(0, Number(item.duration_ms) || 0), position: Math.max(0, Number(data.progress_ms) || 0),
     playing: Boolean(data.is_playing), sampledAt: Date.now(),
     controls: { play: !restricted && !disallows.resuming, pause: !restricted && !disallows.pausing,
+      previous: !restricted && !disallows.skipping_prev, next: !restricted && !disallows.skipping_next,
       seek: !restricted && !disallows.seeking && Number.isFinite(data.progress_ms) },
     controlReason: restricted ? 'This Spotify device does not allow remote controls.' : ''
   };

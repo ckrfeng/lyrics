@@ -28,7 +28,7 @@ class Preferences {
     this.value = { tint: 42, collapsed: false, mode: 'demo', onboarded: false };
     try {
       const p = JSON.parse(fs.readFileSync(file, 'utf8'));
-      if (Number.isFinite(p.tint)) this.value.tint = Math.min(90, Math.max(25, p.tint));
+      if (Number.isFinite(p.tint)) this.value.tint = Math.min(100, Math.max(0, p.tint));
       for (const key of ['collapsed', 'onboarded']) if (typeof p[key] === 'boolean') this.value[key] = p[key];
       if (p.mode === 'spotify') this.value.mode = 'spotify';
       if (Number.isFinite(p.x) && Number.isFinite(p.y)) Object.assign(this.value, { x: p.x, y: p.y });

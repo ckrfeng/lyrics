@@ -56,5 +56,28 @@ test('damaged or out-of-range preferences use safe values', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'verse-prefs-')), file = path.join(dir, 'prefs.json');
   fs.writeFileSync(file, '{broken'); assert.equal(new Preferences(file).value.tint, 42);
   fs.writeFileSync(file, JSON.stringify({ tint: 999, collapsed: 'false', x: 'bad', y: 20, clientId: 'secret' }));
-  const prefs = new Preferences(file); assert.equal(prefs.value.tint, 90); assert.equal(prefs.value.collapsed, false); assert.equal(prefs.value.x, undefined);
+  const prefs = new Preferences(file); assert.equal(prefs.value.tint, 100); assert.equal(prefs.value.collapsed, false); assert.equal(prefs.value.x, undefined);
+});
+test('previous/next use real POST commands and wait for the new Spotify snapshot', async () => {
+  const calls = []; const s = service(async (route, method) => { calls.push([route, method]); return method === 'GET' ? data('a') : null; });
+  s.active = true; await s.poll(); const previous = { ...s.state.track };
+  await s.control({ action: 'next', trackId: 'a' });
+  assert.equal(s.state.track.position, previous.position); assert.equal(s.state.track.playing, previous.playing);
+  await s.control({ action: 'previous', trackId: 'a' });
+  assert.deepEqual(calls.slice(1), [['/me/player/next', 'POST'], ['/me/player/previous', 'POST']]); s.stop();
+});
+test('Spotify skip restrictions block commands without issuing requests', async () => {
+  let calls = 0; const s = service(async () => { calls++; return { ...data('a'), actions: { disallows: { skipping_next: true, skipping_prev: true } } }; });
+  s.active = true; await s.poll();
+  await assert.rejects(s.control({ action: 'next', trackId: 'a' }), /does not allow/);
+  await assert.rejects(s.control({ action: 'previous', trackId: 'a' }), /does not allow/);
+  assert.equal(calls, 1); s.stop();
+});
+test('saved tint endpoints survive loading without changing existing settings', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'verse-tint-')), file = path.join(dir, 'prefs.json');
+  for (const tint of [0, 42, 100]) {
+    const p = new Preferences(file); p.set({ tint, collapsed: true, x: 12, y: 34 });
+    const restored = new Preferences(file).value;
+    assert.equal(restored.tint, tint); assert.equal(restored.collapsed, true); assert.equal(restored.x, 12);
+  }
 });

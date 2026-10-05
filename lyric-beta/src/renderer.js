@@ -13,19 +13,25 @@ function sizeWindow() {
   });
 }
 function tint(value) {
-  overlay.style.setProperty('--tint', Number(value) / 100);
+  value = Math.max(0, Math.min(100, Number(value)));
+  const strength = value / 100;
+  overlay.style.setProperty('--tint', strength);
+  overlay.style.setProperty('--glass-blur', `${strength * 32}px`);
+  overlay.style.setProperty('--glass-shine', .02 + strength * .20);
+  overlay.style.setProperty('--glass-shade', strength * (document.body.classList.contains('fallback') ? .25 : .18));
   el('opacity').value = value; el('opacity-value').textContent = `${value}%`;
 }
 function collapse(value, persist = true) {
   collapsed = value; overlay.classList.toggle('collapsed', value);
   if (persist) void window.verse?.preferences({ collapsed: value });
-  (value ? el('pill') : el('collapse')).focus({ preventScroll: true }); sizeWindow();
+  if (persist) (value ? el('pill') : el('collapse')).focus({ preventScroll: true });
+  sizeWindow();
 }
 function startDemo() {
   const song = window.VerseDemo[songIndex];
   demoStarted = true; sampledAt = null; lastTrack = null;
   clock.sync({ id: `demo-${songIndex}`, position: 0, duration: 90000, playing: true });
-  el('title').textContent = song.title; el('artist').textContent = `${song.artist} · demo`;
+  el('title').textContent = song.title; el('artist').textContent = `demo · ${song.artist}`;
   el('pill-title').textContent = song.title; el('art').style.background = song.art;
   el('art-image').hidden = true; el('art-placeholder').hidden = false;
   overlay.style.setProperty('--tone', song.tone.replaceAll(',', ' '));
@@ -88,9 +94,14 @@ function update() {
   if (el('current').textContent !== current) el('current').textContent = current;
   if (el('following').textContent !== following) el('following').textContent = following;
   el('status').textContent = status; el('status').hidden = !status;
-  el('play').textContent = clock.playing ? 'Ⅱ' : '▶'; overlay.classList.toggle('paused', !clock.playing);
+  el('play-symbol').setAttribute('d', clock.playing ? 'M4 3h3v10H4zM9 3h3v10H9z' : 'M4 2l10 6-10 6z'); overlay.classList.toggle('paused', !clock.playing);
   const action = clock.playing ? 'pause' : 'play';
   el('play').disabled = busy || (!demo && (snapshot.status !== 'ready' || !snapshot.track?.controls[action]));
+  for (const action of ['previous', 'next']) {
+    const button = el(`${action}-song`);
+    button.disabled = busy || (!demo && (snapshot.status !== 'ready' || !snapshot.track?.controls[action]));
+    button.title = button.disabled ? (snapshot.track?.controlReason || snapshot.message || 'Spotify does not allow skipping right now.') : `${action === 'next' ? 'Next' : 'Previous'} song`;
+  }
   el('seek').disabled = busy || (!demo && (snapshot.status !== 'ready' || !snapshot.track?.controls.seek));
   el('play').setAttribute('aria-label', `${clock.playing ? 'Pause' : 'Play'} ${demo ? 'demo' : 'Spotify'}`);
   el('play').title = el('play').disabled ? (snapshot.track?.controlReason || snapshot.message || 'Spotify control unavailable') : el('play').getAttribute('aria-label');
@@ -124,6 +135,14 @@ el('play').onclick = () => {
   if (snapshot.mode === 'demo') { clock.playing ? clock.pause() : clock.resume(); update(); }
   else void control({ action: clock.playing ? 'pause' : 'play' });
 };
+for (const action of ['previous', 'next']) {
+  el(`${action}-song`).onclick = () => {
+    if (snapshot.mode === 'demo') {
+      songIndex = (songIndex + (action === 'next' ? 1 : -1) + window.VerseDemo.length) % window.VerseDemo.length;
+      startDemo();
+    } else void control({ action });
+  };
+}
 el('seek').oninput = () => { seeking = true; update(); };
 el('seek').onchange = () => {
   const position = Number(el('seek').value); seeking = false;
