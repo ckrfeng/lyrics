@@ -13,9 +13,9 @@ button{border:0;color:inherit;background:transparent;-webkit-app-region:no-drag}
 .playback{width:76px;flex-shrink:0;-webkit-app-region:no-drag}.transport{display:grid;grid-template-columns:22px 32px 22px;height:28px;align-items:center}.playback .icon{color:#ffffffd9}#play{width:32px;color:white}.window-actions{display:flex;flex-direction:column}.window-actions .icon{width:20px;height:20px;font-size:15px;color:#ffffffc9}
 .seek{display:block;width:100%;appearance:none;-webkit-appearance:none;height:12px;cursor:pointer;margin:0;padding:0;background:transparent;--played:0%;-webkit-app-region:no-drag}.seek::-webkit-slider-runnable-track{height:2px;border-radius:2px;background:linear-gradient(to right,#ffffffd9 var(--played),#ffffff38 var(--played))}.seek::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:5px;height:5px;border-radius:50%;background:#fff;margin-top:-1.5px}.seek::-moz-range-track{height:2px;background:#ffffff38}.seek::-moz-range-progress{height:2px;background:#ffffffd9}.seek::-moz-range-thumb{width:5px;height:5px;border:0;border-radius:50%;background:#fff}.seek:disabled{opacity:.4;cursor:default}
 @media (hover:hover) and (pointer:fine){
-  #play svg{transform:translate(8px,6px);transition:transform 160ms ease}
+  #play svg{transform:translate(6px,4px) scale(1.666667);transition:transform 160ms ease}
   #overlay :is(#previous-song,#next-song,#seek){opacity:0;pointer-events:none;transition:opacity 160ms ease}
-  #overlay:hover #play svg,#overlay:has(:focus-visible) #play svg{transform:translate(0,0)}
+  #overlay:hover #play svg,#overlay:has(:focus-visible) #play svg{transform:translate(0,0) scale(1)}
   #overlay:hover :is(#previous-song,#next-song,#seek),#overlay:has(:focus-visible) :is(#previous-song,#next-song,#seek){opacity:1;pointer-events:auto}
   #overlay:hover :is(#previous-song,#next-song,#seek):disabled,#overlay:has(:focus-visible) :is(#previous-song,#next-song,#seek):disabled{opacity:.4}
 }
